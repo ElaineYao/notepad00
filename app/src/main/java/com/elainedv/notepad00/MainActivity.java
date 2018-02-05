@@ -100,6 +100,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemClick(View v, int position) {
+        padList.clear();
+        cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
+        initPadList(cursor,padList);
         Pad pad00=padList.get(position);
         Intent intent =new Intent(MainActivity.this,SelectAct.class);
         intent.putExtra(Constant.ID,pad00.getId());
