@@ -104,6 +104,7 @@ public class SelectAct extends AppCompatActivity implements View.OnClickListener
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.s_save:
+                pads.clear();
                 values.put(Constant.CONTENT, s_et.getText().toString());
                 db.update(Constant.DBNAME, values, "_id=?", new String[]{s_id + ""});
                 cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
@@ -114,6 +115,7 @@ public class SelectAct extends AppCompatActivity implements View.OnClickListener
                 break;
             case R.id.s_delete:
                 db.delete(Constant.DBNAME, "_id=?", new String[]{s_id + ""});
+                pads.clear();
                 cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
                 initPadList(cursor,pads);
                 MainActivity.getAdapter().setMpads(pads);
