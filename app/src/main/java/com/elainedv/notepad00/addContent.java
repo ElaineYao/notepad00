@@ -141,7 +141,7 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
     }
     public void getVideo(){
         videoView.setVisibility(View.VISIBLE);
-        outputVideo = new File(Environment.getExternalStorageDirectory(),"output_video"+getTime()+".mp4");
+        outputVideo = new File(getExternalCacheDir(),"output_video"+getTime()+".mp4");
         Log.d("tag",outputVideo+"");
         try{
             if(outputVideo.exists()){

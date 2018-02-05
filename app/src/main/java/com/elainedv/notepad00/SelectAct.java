@@ -8,8 +8,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -18,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.VideoView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +40,7 @@ public class SelectAct extends AppCompatActivity implements View.OnClickListener
     private Cursor cursor;
     private ContentValues values;
     private List<Pad> pads;
+    private  Uri videoUri;
     private MediaPlayer mediaPlayer = new MediaPlayer();
 
     @Override
@@ -79,7 +83,12 @@ public class SelectAct extends AppCompatActivity implements View.OnClickListener
         }
         Bitmap bitmap0 = BitmapFactory.decodeFile(s_path);
         s_img1.setImageBitmap(bitmap0);
-        s_img2.setVideoURI(Uri.parse(s_video));
+        if(Build.VERSION.SDK_INT>=24){
+            videoUri= FileProvider.getUriForFile(this,"com.elainedv.notepad00.fileprovider00",new File(s_video));
+        }else{
+            videoUri=Uri.fromFile(new File(s_video));
+        }
+        s_img2.setVideoURI(videoUri);
         s_img2.start();
         /*try {
             mediaPlayer.setDataSource(s_video);
