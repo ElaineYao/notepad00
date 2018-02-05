@@ -115,8 +115,8 @@ public class SelectAct extends AppCompatActivity implements View.OnClickListener
                 break;
             case R.id.s_delete:
                 db.delete(Constant.DBNAME, "_id=?", new String[]{s_id + ""});
-                pads.clear();
                 cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
+                pads.clear();
                 initPadList(cursor,pads);
                 MainActivity.getAdapter().setMpads(pads);
                 MainActivity.getAdapter().notifyDataSetChanged();
