@@ -22,7 +22,7 @@
         </activity>
         <activity
             android:name=".addContent"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -33,6 +33,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths00" />
         </provider>
+
+        <activity android:name=".SelectAct"
+                android:screenOrientation="portrait"
+            >
+        </activity>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package com.elainedv.notepad00;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,14 +15,16 @@ import android.widget.Button;
 import android.widget.SimpleAdapter;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import utils.Constant;
 import utils.DbManager;
 
 import static android.support.v7.widget.RecyclerView.*;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener ,MyAdapter.OnItemClickListener{
 
     private Button textbt, pngbt, videobt;
     private RecyclerView rv;
@@ -30,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private  SQLiteDatabase db;
     private Cursor cursor;
     private static MyAdapter adapter;
+    private List<Pad> padList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pngbt = (Button) findViewById(R.id.pngbt);
         videobt = (Button) findViewById(R.id.videobt);
         rv = (RecyclerView) findViewById(R.id.rv);
+        padList=new ArrayList<Pad>();
         dbHelper=DbManager.getInstance(this);
         db=dbHelper.getReadableDatabase();
         cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
@@ -51,11 +56,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pngbt.setOnClickListener(this);
         videobt.setOnClickListener(this);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyAdapter(this);
-        adapter.setCursor(cursor);
+        initPadList(cursor,padList);
+        adapter = new MyAdapter(this,padList);
+        adapter.setOnItemClickListener(this);
         rv.setAdapter(adapter);
     }
 
+    public void initPadList(Cursor mcursor,List<Pad> list) {
+        if (mcursor.moveToFirst()) {
+           do {
+                Pad pad = new Pad();
+                pad.setId(mcursor.getInt(mcursor.getColumnIndex(Constant.ID)));
+                pad.setContent(mcursor.getString(mcursor.getColumnIndex(Constant.CONTENT)));
+                pad.setTime(mcursor.getString(mcursor.getColumnIndex(Constant.TIME)));
+                pad.setPath(mcursor.getString(mcursor.getColumnIndex(Constant.PATH)));
+                pad.setVideo(mcursor.getString(mcursor.getColumnIndex(Constant.VIDEO)));
+                list.add(pad);
+            } while (mcursor.moveToNext());
+        }mcursor.close();
+    }
 
     public static MyAdapter getAdapter(){
         return adapter;
@@ -77,6 +96,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
         }
+    }
+
+    @Override
+    public void onItemClick(View v, int position) {
+        Pad pad00=padList.get(position);
+        Intent intent =new Intent(MainActivity.this,SelectAct.class);
+        intent.putExtra(Constant.ID,pad00.getId());
+        intent.putExtra(Constant.CONTENT,pad00.getContent());
+        intent.putExtra(Constant.TIME,pad00.getTime());
+        intent.putExtra(Constant.PATH,pad00.getPath());
+        intent.putExtra(Constant.VIDEO,pad00.getVideo());
+        startActivity(intent);
     }
 }
 

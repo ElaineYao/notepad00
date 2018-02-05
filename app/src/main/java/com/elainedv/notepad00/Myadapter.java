@@ -20,48 +20,68 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 import utils.Constant;
 
 /**
  * Created by Elaine on 18/1/28.
  */
 
-class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> implements View.OnClickListener{
 
     private Context context;
-    private Cursor cursor;
+    private OnItemClickListener onItemClickListener=null;
+    private List<Pad> mpads;
 
-    public MyAdapter(Context context) {
+    public MyAdapter(Context context,List<Pad> pads) {
        this.context=context;
+       mpads=pads;
     }
 
-    public void setCursor(Cursor cursor){
-        this.cursor=cursor;
+    public void setMpads(List<Pad> mpads) {
+        this.mpads = mpads;
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(onItemClickListener!=null){
+            onItemClickListener.onItemClick(view,(int)view.getTag());
+        }
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener){
+        this.onItemClickListener=onItemClickListener;
+    }
+
+    public static interface OnItemClickListener{
+        public void onItemClick(View v,int position);
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
         ViewHolder holder = new ViewHolder(view);
+        view.setOnClickListener(this);
         return holder;
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        cursor.moveToPosition(position);
-        String content = cursor.getString(cursor.getColumnIndex(Constant.CONTENT));
-        String time = cursor.getString(cursor.getColumnIndex(Constant.TIME));
-        String path = cursor.getString(cursor.getColumnIndex(Constant.PATH));
-        String video00=cursor.getString(cursor.getColumnIndex(Constant.VIDEO));
+        String content = mpads.get(position).getContent();
+        String time = mpads.get(position).getTime();
+        String path = mpads.get(position).getPath();
+        String video00=mpads.get(position).getVideo();
         holder.content.setText(content);
         holder.time.setText(time);
         holder.png.setImageBitmap(getImageThumbnail(path, 200, 200));
         holder.video.setImageBitmap(getVideoThumbnail(video00,200,200,MediaStore.Images.Thumbnails.MICRO_KIND));
+        holder.itemView.setTag(position);
     }
 
     @Override
     public int getItemCount() {
-        return cursor.getCount();
+        return mpads.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -104,24 +124,8 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public Bitmap getVideoThumbnail(String uri, int width, int height,int kind) {
         Bitmap bitmap = null;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        bitmap = BitmapFactory.decodeFile(uri, options);
-        options.inJustDecodeBounds = false;
-        int bewidth=options.outWidth/width;
-        int beheight=options.outHeight/height;
-        int be = 1;
-        if(bewidth<beheight){
-            be = bewidth;
-        }else{
-            be = beheight;
-        }
-        if(be <=0){
-            be=1;
-        }
-        options.inSampleSize= be;
-        bitmap=BitmapFactory.decodeFile(uri,options);
-        bitmap=ThumbnailUtils.extractThumbnail(bitmap,width,height,ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
+        bitmap = ThumbnailUtils.createVideoThumbnail(uri,kind);
+        bitmap = ThumbnailUtils.extractThumbnail(bitmap,width,height,ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
         return  bitmap;
     }
 

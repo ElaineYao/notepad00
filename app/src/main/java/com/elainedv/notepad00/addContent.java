@@ -13,15 +13,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.VideoView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +32,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import utils.Constant;
 import utils.DbManager;
@@ -36,13 +40,16 @@ import utils.DbManager;
 public class addContent extends AppCompatActivity implements View.OnClickListener {
 
     private String val;
-    private ImageView pngView, videoView;
+    private ImageView pngView;
+    private VideoView videoView;
     private EditText editText;
     private Button bt1, bt2;
     private MySqliteHelper dbHelper;
     private SQLiteDatabase db;
     private Uri imageUri,videoUri;
     private File outputImage,outputVideo;
+    private Cursor cursor;
+    private List<Pad> pads;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +63,9 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
 
     public void initview() {
         pngView = (ImageView) findViewById(R.id.pngview);
-        videoView = (ImageView) findViewById(R.id.videoview);
+        videoView = (VideoView)findViewById(R.id.videoview);
         editText = (EditText) findViewById(R.id.edit_text);
+        pads=new ArrayList<Pad>();
         bt1 = (Button) findViewById(R.id.save);
         bt1.setOnClickListener(this);
         bt2 = (Button) findViewById(R.id.notsave);
@@ -97,11 +105,11 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
         values.put(Constant.PATH,outputImage+"");
         values.put(Constant.VIDEO,outputVideo+"");
         db.insert(Constant.DBNAME, null, values);
-        Cursor cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
-        MainActivity.getAdapter().setCursor(cursor);
+        cursor=db.query(Constant.DBNAME,null,null,null,null,null,null);
+        initPadList(cursor,pads);
+        MainActivity.getAdapter().setMpads(pads);
         MainActivity.getAdapter().notifyDataSetChanged();
     }
-
 
     public String getTime() {
         SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
@@ -133,7 +141,8 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
     }
     public void getVideo(){
         videoView.setVisibility(View.VISIBLE);
-        outputVideo = new File(getExternalCacheDir(),"output_video"+getTime()+".mp4");
+        outputVideo = new File(Environment.getExternalStorageDirectory(),"output_video"+getTime()+".mp4");
+        Log.d("tag",outputVideo+"");
         try{
             if(outputVideo.exists()){
                 outputVideo.delete();
@@ -153,6 +162,20 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
 
     }
 
+    public void initPadList(Cursor mcursor,List<Pad> list) {
+        if (mcursor.moveToFirst()) {
+            do {
+                Pad pad = new Pad();
+                pad.setId(mcursor.getInt(mcursor.getColumnIndex(Constant.ID)));
+                pad.setContent(mcursor.getString(mcursor.getColumnIndex(Constant.CONTENT)));
+                pad.setTime(mcursor.getString(mcursor.getColumnIndex(Constant.TIME)));
+                pad.setPath(mcursor.getString(mcursor.getColumnIndex(Constant.PATH)));
+                pad.setVideo(mcursor.getString(mcursor.getColumnIndex(Constant.VIDEO)));
+                list.add(pad);
+            } while (mcursor.moveToNext());
+        }mcursor.close();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -169,12 +192,8 @@ public class addContent extends AppCompatActivity implements View.OnClickListene
                 break;
             case (Constant.TAKE_VIDEO):
                 if(resultCode == RESULT_OK){
-                    try{
-                        Bitmap bitmap01 = BitmapFactory.decodeStream(getContentResolver().openInputStream((videoUri)));
-                        videoView.setImageBitmap(bitmap01);
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
+                        videoView.setVideoURI(videoUri);
+                        videoView.start();
                 }
                 break;
 
